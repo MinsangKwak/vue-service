@@ -1,4 +1,5 @@
 # sample-service
+with vue
 
 ## Project setup
 ```
