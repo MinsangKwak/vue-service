@@ -1,4 +1,4 @@
-name: Deploy Vue.js App practice
+name: Deploy Vue.js App
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # 전체 히스토리를 가져오도록 설정
+          fetch-depth: 1  # 최소한의 히스토리만 가져오도록 설정
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
