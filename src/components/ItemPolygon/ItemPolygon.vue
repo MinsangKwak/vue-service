@@ -21,8 +21,9 @@ export default {
 		camera.position.z = 5;
 
 		// 렌더러 생성
-		const renderer = new THREE.WebGLRenderer();
+      	const renderer = new THREE.WebGLRenderer({ alpha: true }); // 배경을 투명하게 설정
 		renderer.setSize(window.innerWidth, window.innerHeight);
+      	renderer.setClearColor(0x000000, 0); // 배경을 투명하게 설정
 		this.$refs.soccerBallContainer.appendChild(renderer.domElement);
 
 		// 궤도 컨트롤 추가
