@@ -13,80 +13,40 @@ export default {
 	},
 	methods: {
 		initThreeJS() {
-			const container = this.$refs.soccerBallContainer;
-			const width = container.clientWidth;
-			const height = container.clientHeight;
+		// 장면 생성
+		const scene = new THREE.Scene();
 
-			// Create scene
-			const scene = new THREE.Scene();
+		// 카메라 생성
+		const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		camera.position.z = 5;
 
-			// Create camera
-			const camera = new THREE.PerspectiveCamera(
-				75,
-				width / height,
-				0.1,
-				1000
-			);
-			camera.position.z = 5;
+		// 렌더러 생성
+		const renderer = new THREE.WebGLRenderer();
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		this.$refs.soccerBallContainer.appendChild(renderer.domElement);
 
-			// Create renderer
-			const renderer = new THREE.WebGLRenderer();
-			renderer.setSize(width, height);
-			renderer.setClearColor(0xffffff); // 배경색을 하얗게 설정
-			container.appendChild(renderer.domElement);
+		// 궤도 컨트롤 추가
+		const controls = new OrbitControls(camera, renderer.domElement);
 
-			// Add orbit controls
-			const controls = new OrbitControls(camera, renderer.domElement);
+		// 축구공 지오메트리 생성
+		const geometry = new THREE.IcosahedronGeometry(1, 2);
+		const material = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+		const soccerBall = new THREE.Mesh(geometry, material);
+		scene.add(soccerBall);
 
-			// Shader material for rainbow color
-			const vertexShader = `
-          varying vec3 vPos;
-          void main() {
-            vPos = position;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-        `;
+		// 애니메이션 루프
+		const animate = () => {
+			requestAnimationFrame(animate);
 
-			const fragmentShader = `
-          varying vec3 vPos;
-          void main() {
-            float x = vPos.x * 0.5 + 0.5;
-            gl_FragColor = vec4(abs(sin(x * 3.14159265 * 2.0)), abs(sin((x + 0.33) * 3.14159265 * 2.0)), abs(sin((x + 0.66) * 3.14159265 * 2.0)), 1.0);
-          }
-        `;
+			// 축구공 회전
+			soccerBall.rotation.x += 0.01;
+			soccerBall.rotation.y += 0.01;
 
-			const material = new THREE.ShaderMaterial({
-				vertexShader: vertexShader,
-				fragmentShader: fragmentShader,
-			});
+			controls.update();
+			renderer.render(scene, camera);
+		};
 
-			// Create soccer ball geometry
-			const geometry = new THREE.IcosahedronGeometry(1, 2);
-			const soccerBall = new THREE.Mesh(geometry, material);
-			scene.add(soccerBall);
-
-			// Resize handling
-			window.addEventListener("resize", () => {
-				const width = container.clientWidth;
-				const height = container.clientHeight;
-				renderer.setSize(width, height);
-				camera.aspect = width / height;
-				camera.updateProjectionMatrix();
-			});
-
-			// Animation loop
-			const animate = () => {
-				requestAnimationFrame(animate);
-
-				// Rotate the soccer ball
-				soccerBall.rotation.x += 0.01;
-				soccerBall.rotation.y += 0.01;
-
-				controls.update();
-				renderer.render(scene, camera);
-			};
-
-			animate();
+		animate();
 		},
 	},
 };
