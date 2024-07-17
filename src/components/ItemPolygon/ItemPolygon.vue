@@ -13,52 +13,82 @@ export default {
 	},
 	methods: {
 		initThreeJS() {
-		// Create scene
-		const scene = new THREE.Scene();
+			const container = this.$refs.soccerBallContainer;
+			const width = container.clientWidth;
+			const height = container.clientHeight;
 
-		// Create camera
-		const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-		camera.position.z = 5;
+			// Create scene
+			const scene = new THREE.Scene();
 
-		// Create renderer
-		const renderer = new THREE.WebGLRenderer();
-		renderer.setSize(window.innerWidth, window.innerHeight);
-		this.$refs.soccerBallContainer.appendChild(renderer.domElement);
+			// Create camera
+			const camera = new THREE.PerspectiveCamera(
+				75,
+				width / height,
+				0.1,
+				1000
+			);
+			camera.position.z = 5;
 
-		// Add orbit controls
-		const controls = new OrbitControls(camera, renderer.domElement);
-
-		// Create soccer ball geometry
-		const geometry = new THREE.IcosahedronGeometry(1, 2);
-		const material = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
-		const soccerBall = new THREE.Mesh(geometry, material);
-		scene.add(soccerBall);
-
-		// Resize handling
-		window.addEventListener('resize', () => {
-			const width = window.innerWidth;
-			const height = window.innerHeight;
+			// Create renderer
+			const renderer = new THREE.WebGLRenderer();
 			renderer.setSize(width, height);
-			camera.aspect = width / height;
-			camera.updateProjectionMatrix();
-		});
+			renderer.setClearColor(0xffffff); // 배경색을 하얗게 설정
+			container.appendChild(renderer.domElement);
 
-		// Animation loop
-		const animate = () => {
-			requestAnimationFrame(animate);
+			// Add orbit controls
+			const controls = new OrbitControls(camera, renderer.domElement);
 
-			// Rotate the soccer ball
-			soccerBall.rotation.x += 0.01;
-			soccerBall.rotation.y += 0.01;
+			// Shader material for rainbow color
+			const vertexShader = `
+          varying vec3 vPos;
+          void main() {
+            vPos = position;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `;
 
-			controls.update();
-			renderer.render(scene, camera);
-		};
+			const fragmentShader = `
+          varying vec3 vPos;
+          void main() {
+            float x = vPos.x * 0.5 + 0.5;
+            gl_FragColor = vec4(abs(sin(x * 3.14159265 * 2.0)), abs(sin((x + 0.33) * 3.14159265 * 2.0)), abs(sin((x + 0.66) * 3.14159265 * 2.0)), 1.0);
+          }
+        `;
 
-		animate();
+			const material = new THREE.ShaderMaterial({
+				vertexShader: vertexShader,
+				fragmentShader: fragmentShader,
+			});
+
+			// Create soccer ball geometry
+			const geometry = new THREE.IcosahedronGeometry(1, 2);
+			const soccerBall = new THREE.Mesh(geometry, material);
+			scene.add(soccerBall);
+
+			// Resize handling
+			window.addEventListener("resize", () => {
+				const width = container.clientWidth;
+				const height = container.clientHeight;
+				renderer.setSize(width, height);
+				camera.aspect = width / height;
+				camera.updateProjectionMatrix();
+			});
+
+			// Animation loop
+			const animate = () => {
+				requestAnimationFrame(animate);
+
+				// Rotate the soccer ball
+				soccerBall.rotation.x += 0.01;
+				soccerBall.rotation.y += 0.01;
+
+				controls.update();
+				renderer.render(scene, camera);
+			};
+
+			animate();
 		},
-	}
-  },
+	},
 };
 </script>
 
